@@ -6,10 +6,10 @@ relayed, and the host corrects drift.
 
 - Loader: none. Unity starts DinoNet itself from its start-up lists; Harmony patches the game (game: Unity 2021.3.45f2, Mono, Entities 0.51, version dno_1.0.187_r)
 - Networking: NetKit (Rust, `netkit.dll`): Iroh join codes and Steam lobbies
-- Current version: **0.2.5.4**
+- Current version: **0.2.5.5**
 
 ## Download
-Download `download/DinoNet-0.2.5.4.zip` from this repository (open it, then "Download raw file"). It's a full drag-and-drop package
+Download `download/DinoNet-0.2.5.5.zip` from this repository (open it, then "Download raw file"). It's a full drag-and-drop package
 (`Diplomacy is Not an Option_Data` + `UserData` folders): open the zip and drag both folders into the game folder, replacing the 2 files Windows asks about.
 See `README-DinoNet.txt` for player instructions.
 

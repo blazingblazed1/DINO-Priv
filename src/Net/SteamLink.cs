@@ -78,6 +78,7 @@ namespace DinoNet
                 ulong cl = CommandLineLobby();
                 if (cl != 0) { PendingJoinLobby = cl; Log.Msg("Steam: +connect_lobby " + cl + " on the command line"); }
                 Log.Msg("Steam: callbacks registered (" + PersonaName() + ")");
+                Log.Msg("player name: " + Prefs.DisplayName);   // the log header is written before Steam is up
             }
             catch (Exception e) { Log.Warn("Steam: callbacks failed: " + e.Message); }
         }

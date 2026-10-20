@@ -9,7 +9,9 @@ namespace DinoNet
 {
     public class Mod
     {
-        public const string Version = "0.2.5.4";
+        public const string Version = "0.2.5.5";
+        /// The game version this build's start-up lists (and hooks) were made from.
+        public const string BuiltForGame = "dno_1.0.187_r";
         public const string GameKey = "dino-coop";
         public static Mod I;
         public static string Dir;          // UserData\DinoNet
@@ -41,6 +43,8 @@ namespace DinoNet
             try { new HarmonyLib.Harmony("dinonet").PatchAll(typeof(Mod).Assembly); Log.Msg("patches applied"); }
             catch (Exception e) { Log.Err("patching failed: " + e); }
             Log.Msg("DinoNet " + Version + " ready");
+            if (Application.version != BuiltForGame)
+                Log.Warn("game version " + Application.version + " - this DinoNet was made for " + BuiltForGame + ". If something misbehaves, get the DinoNet build for your game version.");
             Watch.Start();
             Flight.Start();
         }

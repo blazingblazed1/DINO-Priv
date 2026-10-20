@@ -65,6 +65,7 @@ namespace DinoNet
             vl.childControlHeight = true; vl.childControlWidth = true; vl.childForceExpandHeight = false;
         }
 
+        static bool versionWarned;
         public static void Toast(string text, float secs = 3.5f)
         {
             Log.Msg("[toast] " + text);
@@ -199,6 +200,11 @@ namespace DinoNet
             else menuMode = MenuMode.Root;
             ApplyMenuMode();
             Log.Msg("main menu: co-op buttons added");
+            if (!versionWarned && Application.version != Mod.BuiltForGame)
+            {
+                versionWarned = true;
+                Toast("DinoNet was made for game version " + Mod.BuiltForGame + " (you have " + Application.version + ") - co-op may misbehave", 8f);
+            }
         }
 
         static GameObject CloneMenuButton(MainMenuButton src, string name, string text, Action onClick)

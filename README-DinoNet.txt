@@ -1,4 +1,4 @@
-DinoNet 0.2.5.4 - online co-op for Diplomacy is Not an Option
+DinoNet 0.2.5.5 - online co-op for Diplomacy is Not an Option
 ==============================================================
 
 One shared town: everyone controls the same faction - same buildings, army, resources and research. Each player has their own camera. The host runs
