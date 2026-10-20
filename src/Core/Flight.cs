@@ -288,7 +288,7 @@ namespace DinoNet
             catch { }
         }
 
-        /// A copy for the player to find easily: Desktop\DinoNet Reports\ (recording + MelonLoader log).
+        /// A copy for the player to find easily: Desktop\DinoNet Reports\ (recording + Unity's Player.log).
         /// Desktop\DinoNet Reports\<player name>\ - one folder per player, so several copies of the game
         /// on one PC (or logs collected from friends) never mix.
         public static string PlayerFolder()
@@ -303,7 +303,8 @@ namespace DinoNet
             return Path.Combine(Path.Combine(desk, "DinoNet Reports"), n);
         }
 
-        static string MlDir => Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Mod.Dir)), "MelonLoader");
+        /// Unity's own log for this run (%USERPROFILE%\AppData\LocalLow\<company>\<game>\Player.log).
+        static string UnityLog { get { try { return Application.consoleLogPath; } catch { return null; } } }
 
         static string ReadShared(string path)
         {
@@ -320,21 +321,21 @@ namespace DinoNet
                 string d = PlayerFolder(); if (d == null) return;
                 Directory.CreateDirectory(d);
                 if (Log.OwnPath != null && File.Exists(Log.OwnPath)) File.WriteAllText(Path.Combine(d, "DinoNet.log"), ReadShared(Log.OwnPath));
-                string log = Path.Combine(MlDir, "Latest.log");
-                if (!File.Exists(log)) return;
-                File.WriteAllText(Path.Combine(d, "Latest.log"), ReadShared(log));
+                string log = UnityLog;
+                if (string.IsNullOrEmpty(log) || !File.Exists(log)) return;
+                File.WriteAllText(Path.Combine(d, "Player.log"), ReadShared(log));
             }
             catch { }
         }
 
-        /// The MelonLoader log of the run before this one (MelonLoader keeps them in MelonLoader\Logs).
+        /// Unity's log of the run before this one (Unity keeps it as Player-prev.log next to Player.log).
         static string PreviousRunLog()
         {
             try
             {
-                var files = new List<FileInfo>(new DirectoryInfo(Path.Combine(MlDir, "Logs")).GetFiles("*.log"));
-                files.Sort((a, b) => b.LastWriteTimeUtc.CompareTo(a.LastWriteTimeUtc));
-                return files.Count >= 2 ? files[1].FullName : null;   // [0] is this run
+                string cur = UnityLog; if (string.IsNullOrEmpty(cur)) return null;
+                string prev = Path.Combine(Path.GetDirectoryName(cur), "Player-prev.log");
+                return File.Exists(prev) ? prev : null;
             }
             catch { return null; }
         }
@@ -347,9 +348,9 @@ namespace DinoNet
                 string d = PlayerFolder(); if (d == null) return;
                 Directory.CreateDirectory(d);
                 File.WriteAllText(Path.Combine(d, name), text);
-                string log = previousRun ? PreviousRunLog() : Path.Combine(MlDir, "Latest.log");
-                if (log != null && File.Exists(log))
-                    File.WriteAllText(Path.Combine(d, name.Replace(".txt", "_MelonLoader-log.txt")), ReadShared(log));
+                string log = previousRun ? PreviousRunLog() : UnityLog;
+                if (!string.IsNullOrEmpty(log) && File.Exists(log))
+                    File.WriteAllText(Path.Combine(d, name.Replace(".txt", "_Unity-log.txt")), ReadShared(log));
                 if (!previousRun && Log.OwnPath != null && File.Exists(Log.OwnPath))
                     File.WriteAllText(Path.Combine(d, name.Replace(".txt", "_DinoNet-log.txt")), ReadShared(Log.OwnPath));
                 var files = new List<FileInfo>(new DirectoryInfo(d).GetFiles("flight_*.txt"));

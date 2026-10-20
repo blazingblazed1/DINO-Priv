@@ -1,19 +1,29 @@
-DinoNet 0.2.5.3 - online co-op for Diplomacy is Not an Option
+DinoNet 0.2.5.4 - online co-op for Diplomacy is Not an Option
 ==============================================================
 
 One shared town: everyone controls the same faction - same buildings, army, resources and research. Each player has their own camera. The host runs
 the game; friends run it too and follow the host.
 
-INSTALL (drag and drop)
------------------------
+INSTALL (drag and drop, no mod loader)
+--------------------------------------
+Made for game version dno_1.0.187_r (the current Steam version).
 1. Open the game folder: Steam > right-click Diplomacy is Not an Option > Manage > Browse local files.
-2. Drag everything from this zip into that folder (next to "Diplomacy is Not an Option.exe"): the MelonLoader folder, version.dll, Mods and UserData.
-3. Start the game. The first start with MelonLoader takes a little longer.
+2. Open this zip and drag BOTH folders from it into the game folder (next to "Diplomacy is Not an Option.exe"):
+   "Diplomacy is Not an Option_Data" and "UserData". When Windows asks, choose "Replace the files" (2 small files are replaced).
+3. Start the game normally. The main menu now has MULTIPLAYER.
 Everyone who plays needs the same DinoNet version.
+
+Had an older DinoNet with MelonLoader? Delete these from the game folder first: version.dll, the MelonLoader folder,
+and Mods\DinoNet.dll (and Mods if it is empty). Otherwise DinoNet stays off.
+
+After a game update, if MULTIPLAYER is gone from the menu: drag the zip in again.
+
+UNINSTALL: Steam > right-click the game > Properties > Installed Files > "Verify integrity of game files". That restores the
+2 replaced files; the extra DinoNet files are then simply ignored (delete them if you like).
 
 LINUX / STEAM DECK (Proton)
 ---------------------------
-Same install, then set the game's Steam launch options to:  WINEDLLOVERRIDES="version=n,b" %command%
+Same install. No launch options needed.
 
 HOW TO PLAY
 -----------
@@ -78,7 +88,7 @@ Steam connection quality) and saves a bug report when something goes wrong: an e
 a failed sync. Press F10 to save one by hand. If the game crashed outright, the report is saved the next time you start the game.
 Each report starts with the PC's CPU, GPU, RAM, Windows version and graphics settings.
 
-Where: Desktop\DinoNet Reports\<your player name>\ - one folder per player name, with the reports, a copy of the MelonLoader log next to each
-report, and Latest.log (kept up to date every minute in co-op, when a session ends and when you quit). Running several copies of the game on one
+Where: Desktop\DinoNet Reports\<your player name>\ - one folder per player name, with the reports, a copy of the game's Unity log next to each
+report, DinoNet.log and Player.log (kept up to date every minute in co-op, when a session ends and when you quit). Running several copies of the game on one
 PC? Give each copy its own name (MULTIPLAYER menu name box, or name= in UserData\DinoNet\settings.txt) and each gets its own folder.
 Also kept in UserData\DinoNet\Recordings\ in the game folder. Send the whole player folder. Old reports are deleted automatically.

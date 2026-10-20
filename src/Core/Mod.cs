@@ -1,18 +1,15 @@
 // DinoNet - online co-op (shared faction) for Diplomacy is Not an Option.
-// MelonLoader mod. Networking: NetKit (netkit.dll in UserData\DinoNet).
+// Loaded by Unity itself (no mod loader): see Core/Boot.cs. Networking: NetKit (netkit.dll in
+// <game>_Data\Plugins\x86_64). Settings and logs: <game folder>\UserData\DinoNet.
 using System;
 using System.IO;
-using MelonLoader;
 using UnityEngine;
-
-[assembly: MelonInfo(typeof(DinoNet.Mod), "DinoNet", DinoNet.Mod.Version, "Mike")]
-[assembly: MelonGame("Door 407", "Diplomacy is Not an Option")]
 
 namespace DinoNet
 {
-    public class Mod : MelonMod
+    public class Mod
     {
-        public const string Version = "0.2.5.3";
+        public const string Version = "0.2.5.4";
         public const string GameKey = "dino-coop";
         public static Mod I;
         public static string Dir;          // UserData\DinoNet
@@ -20,16 +17,19 @@ namespace DinoNet
         public static string NetKitError = "";
         public static int Frame;
 
-        public override void OnInitializeMelon()
+        public static string GameFolder => Path.GetDirectoryName(Application.dataPath);
+
+        public void Init()
         {
             I = this;
-            Dir = Path.Combine(MelonLoader.Utils.MelonEnvironment.UserDataDirectory, "DinoNet");
+            Dir = Path.Combine(Path.Combine(GameFolder, "UserData"), "DinoNet");
             try { Directory.CreateDirectory(Dir); } catch { }
-            Log.Init(LoggerInstance);
             Prefs.Load();
             try
             {
-                NetKit.NetKitLib.Load(Path.Combine(Dir, "netkit.dll"));
+                string nk = Path.Combine(Path.Combine(Path.Combine(Application.dataPath, "Plugins"), "x86_64"), "netkit.dll");
+                if (!File.Exists(nk)) nk = Path.Combine(Dir, "netkit.dll");   // older layout
+                NetKit.NetKitLib.Load(nk);
                 NetKitOk = true;
                 Log.Msg("NetKit " + NetKit.NetKitLib.Version + " loaded");
             }
@@ -38,7 +38,7 @@ namespace DinoNet
                 NetKitError = e.Message;
                 Log.Err("NetKit could not be loaded: " + e.Message);
             }
-            try { HarmonyInstance.PatchAll(typeof(Mod).Assembly); Log.Msg("patches applied"); }
+            try { new HarmonyLib.Harmony("dinonet").PatchAll(typeof(Mod).Assembly); Log.Msg("patches applied"); }
             catch (Exception e) { Log.Err("patching failed: " + e); }
             Log.Msg("DinoNet " + Version + " ready");
             Watch.Start();
@@ -47,7 +47,7 @@ namespace DinoNet
 
         static readonly System.Diagnostics.Stopwatch updWatch = new System.Diagnostics.Stopwatch();
 
-        public override void OnUpdate()
+        public void Update()
         {
             Frame++;
             updWatch.Reset(); updWatch.Start();
@@ -65,13 +65,13 @@ namespace DinoNet
             Watch.Step = "game code (after DinoNet's update)";
         }
 
-        public override void OnLateUpdate()
+        public void LateUpdate()
         {
             try { Game.LateUpdate(); } catch (Exception e) { Log.Throttled("late", "Game.LateUpdate: " + e); }
             Gfx.FreeCursor();
         }
 
-        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+        public void OnSceneLoaded(int buildIndex, string sceneName)
         {
             Log.Msg("scene loaded: " + buildIndex + " " + sceneName);
             if (sceneName == "MainMenu") Watch.Armed = true;
@@ -80,7 +80,7 @@ namespace DinoNet
             try { Game.OnSceneLoaded(buildIndex, sceneName); } catch (Exception e) { Log.Err("Game.OnSceneLoaded: " + e); }
         }
 
-        public override void OnApplicationQuit()
+        public void OnQuit()
         {
             try { Net.Leave("quit"); } catch { }
             Flight.OnQuit();
@@ -88,7 +88,7 @@ namespace DinoNet
     }
 
     /// Hang detector: a background thread that reports where the main thread stopped
-    /// if the game stops advancing for 8 seconds. Writes to the MelonLoader log and to
+    /// if the game stops advancing for 8 seconds. Writes to the log and to
     /// UserData\DinoNet\hang.txt.
     public static class Watch
     {
@@ -142,17 +142,17 @@ namespace DinoNet
 
     public static class Log
     {
-        static MelonLogger.Instance L;
+        const string Tag = "[DinoNet] ";
         static readonly System.Collections.Generic.Dictionary<string, float> last = new System.Collections.Generic.Dictionary<string, float>();
         public static bool Verbose;
-        public static void Init(MelonLogger.Instance l) { L = l; }
-        public static void Msg(string s) { Flight.Add(s); L?.Msg(s); Own(s); }
-        public static void Dbg(string s) { Flight.Add("[dbg] " + s); if (Verbose) { L?.Msg("[dbg] " + s); Own("[dbg] " + s); } }
-        public static void Warn(string s) { Flight.Add("[warn] " + s); L?.Warning(s); Own("[WARNING] " + s); }
-        public static void Err(string s) { Flight.Add("[ERROR] " + s); L?.Error(s); Own("[ERROR] " + s); }
+        // Unity's own log (Player.log) gets everything too; DinoNet's own log is the main one.
+        public static void Msg(string s) { Flight.Add(s); Debug.Log(Tag + s); Own(s); }
+        public static void Dbg(string s) { Flight.Add("[dbg] " + s); if (Verbose) { Debug.Log(Tag + "[dbg] " + s); Own("[dbg] " + s); } }
+        public static void Warn(string s) { Flight.Add("[warn] " + s); Debug.LogWarning(Tag + s); Own("[WARNING] " + s); }
+        public static void Err(string s) { Flight.Add("[ERROR] " + s); Debug.LogError(Tag + s); Own("[ERROR] " + s); }
 
         // DinoNet's own log, one per running copy: several copies run from one game folder share (and
-        // overwrite) MelonLoader's Latest.log, so this one is what tells them apart.
+        // overwrite) Unity's Player.log, so this one is what tells them apart.
         static StreamWriter own;
         static readonly object ownGate = new object();
         public static string OwnPath;
@@ -178,7 +178,7 @@ namespace DinoNet
                 }
                 Own("DinoNet " + Mod.Version + " - player " + Prefs.DisplayName + (Prefs.Instance > 1 ? " (copy #" + Prefs.Instance + " on this PC)" : ""));
             }
-            catch (Exception e) { L?.Warning("own log: " + e.Message); }
+            catch (Exception e) { Debug.LogWarning(Tag + "own log: " + e.Message); }
         }
         static void Own(string s)
         {

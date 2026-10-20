@@ -260,7 +260,7 @@ namespace DinoNet
         static float lastModeWarn = -100f;            // construction move not yet sent
         static byte[] pendingMoveBytes;
         public static int SentCount, RecvCount, AppliedCount, DroppedCount;
-        // unit-order diagnostics, summarised in the MelonLoader log every 10 s
+        // unit-order diagnostics, summarised in the log every 10 s
         public static int UnitSent, UnitSentUnknown, UnitSentUnshareable, UnitApplied, UnitRecvUnknown, UnitWaitedForMatch, WaitFrames;
         static int lastSummaryHash; static float summaryT;
         static void Summary()
