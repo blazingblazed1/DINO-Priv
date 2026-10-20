@@ -4,13 +4,13 @@ Online co-op for **Diplomacy is Not an Option**: 2–8 players (default 4) run o
 The host's game is the reference; guests run the full game from the same save, player commands are
 relayed, and the host corrects drift.
 
-- Loader: MelonLoader 0.7.3 + Harmony (game: Unity 2021.3, Mono, Entities 0.51)
+- Loader: none. Unity starts DinoNet itself from its start-up lists; Harmony patches the game (game: Unity 2021.3.45f2, Mono, Entities 0.51, version dno_1.0.187_r)
 - Networking: NetKit (Rust, `netkit.dll`): Iroh join codes and Steam lobbies
-- Current version: **0.2.5.3**
+- Current version: **0.2.5.4**
 
 ## Download
-Download `download/DinoNet-0.2.5.3.zip` from this repository (open it, then "Download raw file"). It's a full drag-and-drop package
-(MelonLoader + `Mods\DinoNet.dll` + `UserData\DinoNet\netkit.dll`): extract it into the game folder.
+Download `download/DinoNet-0.2.5.4.zip` from this repository (open it, then "Download raw file"). It's a full drag-and-drop package
+(`Diplomacy is Not an Option_Data` + `UserData` folders): open the zip and drag both folders into the game folder, replacing the 2 files Windows asks about.
 See `README-DinoNet.txt` for player instructions.
 
 ## Source layout
@@ -31,6 +31,6 @@ See `README-DinoNet.txt` for player instructions.
 - `ComponentSystemGroup.OnUpdate` (TransformSystemGroup only): guests draw enemies at the host's position
 
 ## Building
-`build.sh` compiles against the game's `Managed` assemblies and MelonLoader's net35 libraries
-(paths at the top of the script; set them for your machine). `package.sh` builds the drag-and-drop zip.
+`build.sh` compiles against the game's `Managed` assemblies and Harmony (net35)
+(paths at the top of the script; set them for your machine). `package.sh` builds the drag-and-drop zip (`tools/addlists.py` adds DinoNet to the game's `ScriptingAssemblies.json` and `RuntimeInitializeOnLoads.json`). `src/Core/Boot.cs` is the start-up entry.
 The game's own assemblies are not included in this repository.
