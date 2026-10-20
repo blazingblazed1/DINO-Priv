@@ -9,7 +9,7 @@ relayed, and the host corrects drift.
 - Current version: **0.2.5.3**
 
 ## Download
-Get `DinoNet-0.2.5.3.zip` from the **Releases** page. It's a full drag-and-drop package
+Download `download/DinoNet-0.2.5.3.zip` from this repository (open it, then "Download raw file"). It's a full drag-and-drop package
 (MelonLoader + `Mods\DinoNet.dll` + `UserData\DinoNet\netkit.dll`): extract it into the game folder.
 See `README-DinoNet.txt` for player instructions.
 
