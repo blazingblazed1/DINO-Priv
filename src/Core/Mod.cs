@@ -9,7 +9,7 @@ namespace DinoNet
 {
     public class Mod
     {
-        public const string Version = "0.2.5.5";
+        public const string Version = "0.2.5.6";
         /// The game version this build's start-up lists (and hooks) were made from.
         public const string BuiltForGame = "dno_1.0.187_r";
         public const string GameKey = "dino-coop";

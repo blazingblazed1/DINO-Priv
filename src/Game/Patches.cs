@@ -50,7 +50,11 @@ namespace DinoNet
     [HarmonyPatch(typeof(ConstructionSystem), "ProcessBuildCommand")]
     static class P_ConstructionBuild
     {
-        static void Postfix(bool __result) { if (ConstructionCtx.RemoteActive) ConstructionCtx.BuildResult = __result ? 1 : 0; }
+        static void Postfix(ConstructionSystem __instance, bool __result)
+        {
+            if (ConstructionCtx.RemoteActive) ConstructionCtx.BuildResult = __result ? 1 : 0;
+            try { ConstructionCtx.BuildDone(__instance, __result); } catch (Exception e) { Log.Throttled("blddone", "build cell: " + e.Message); }
+        }
     }
 
     /// A friend's spell is cast at the friend's point: the spell system reads the mouse ground

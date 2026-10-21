@@ -615,9 +615,10 @@ namespace DinoNet
                     var lb = ConstructionCtx.LastLocal;
                     if (lb.Obj >= 0 && Mod.Frame - lb.Frame <= 3)
                     {
-                        batch.U8(0xB1).UV((ulong)lb.Obj).Bool(lb.Free).U8(lb.Orient < 0 ? 255 : lb.Orient);
+                        batch.U8(0xB2).UV((ulong)lb.Obj).Bool(lb.Free).U8(lb.Orient < 0 ? 255 : lb.Orient)
+                             .Bool(lb.HasCell).SV(lb.CellX).SV(lb.CellY);
                         BuildsSent++;
-                        Flight.Add("[build] sent obj " + lb.Obj + (lb.Free ? " free" : "") + " orient " + lb.Orient);
+                        Flight.Add("[build] sent obj " + lb.Obj + (lb.Free ? " free" : "") + " orient " + lb.Orient + (lb.HasCell ? " cell " + lb.CellX + "," + lb.CellY : " (no cell)"));
                     }
                     else { BuildsSentBare++; Log.Dbg("build sent without its building (record " + lb.Obj + " @" + lb.Frame + " now " + Mod.Frame + ")"); }
                 }
@@ -636,6 +637,7 @@ namespace DinoNet
         class Batch
         {
             public int BuildObj = -1, BuildOrient = -1; public bool BuildFree, HasBuild;
+            public bool BuildHasCell; public int BuildCellX, BuildCellY;
             public int From; public uint Seq; public Cat Cat; public uint[] Sel; public object Deal; public byte[][] Cmds; public float At;
             public int SpellType; public Unity.Mathematics.float2 SpellPos;
             public List<Type> Types;
@@ -667,9 +669,14 @@ namespace DinoNet
                 int nc = (int)u.UV(); b.Cmds = new byte[nc][];
                 for (int i = 0; i < nc; i++) b.Cmds[i] = u.Bytes();
                 if (b.Cat == Cat.Spell && !u.End) { b.SpellType = u.U8(); b.SpellPos = new Unity.Mathematics.float2(u.F32(), u.F32()); }
-                if (b.Cat == Cat.Construction && !u.End && u.U8() == 0xB1)
+                if (b.Cat == Cat.Construction && !u.End)
                 {
-                    b.BuildObj = (int)u.UV(); b.BuildFree = u.Bool(); int o = u.U8(); b.BuildOrient = o == 255 ? -1 : o;
+                    int tag = u.U8();
+                    if (tag == 0xB1 || tag == 0xB2)
+                    {
+                        b.BuildObj = (int)u.UV(); b.BuildFree = u.Bool(); int o = u.U8(); b.BuildOrient = o == 255 ? -1 : o;
+                        if (tag == 0xB2) { b.BuildHasCell = u.Bool(); b.BuildCellX = (int)u.SV(); b.BuildCellY = (int)u.SV(); }
+                    }
                 }
                 b.Types = new List<Type>();
                 foreach (var raw in b.Cmds)
@@ -901,6 +908,10 @@ namespace DinoNet
                 if (b.Types != null) foreach (var t in b.Types) if (t.Name == "ConstructionBuildCommand") build = true;
                 ConstructionCtx.PendingHasBuild = build;
                 ConstructionCtx.PendingObj = b.BuildObj;
+                if (build && buildStep2 && b.BuildHasCell)
+                {
+                    ConstructionCtx.PendingHasCell = true; ConstructionCtx.PendingCellX = b.BuildCellX; ConstructionCtx.PendingCellY = b.BuildCellY;
+                }
                 if (build && b.BuildObj >= 0 && !buildStep2)
                 {
                     // two-frame build: ConstructionSystem ends its update right after a building is selected

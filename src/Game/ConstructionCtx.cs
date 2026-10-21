@@ -30,7 +30,13 @@ namespace DinoNet
         public static int RemoteBuildsOk, RemoteBuildsFailed;
 
         // what the local player last built (read before ConstructionSystem consumes the command)
-        public struct LocalBuildInfo { public int Obj, Orient, Frame; public bool Free; }
+        public struct LocalBuildInfo { public int Obj, Orient, Frame; public bool Free; public bool HasCell; public int CellX, CellY; }
+        // 0.2.5.6: the sender's final grid cell. ConstructionSystem keeps a move "hysteresis" (_lastLocalPos with a
+        // soft bound): the cell a cursor position lands on depends on the previous cells, so a friend's fresh context
+        // could resolve the same ground position to the neighbouring tile. We seed _lastLocalPos with the sender's cell.
+        public static bool PendingHasCell; public static int PendingCellX, PendingCellY;
+        static bool wantCell; static int wantX, wantY;
+        public static int CellMismatches;
         public static LocalBuildInfo LastLocal = new LocalBuildInfo { Obj = -1, Orient = -1, Frame = -100 };
         static EntityQuery qBuildCmd;
 
@@ -208,6 +214,7 @@ namespace DinoNet
         {
             if (PendingPlayer < 0) { RecordLocal(sys); return; }
             int who = PendingPlayer; PendingPlayer = -1;
+            wantCell = false;
             bool fresh = PendingFresh; PendingFresh = false;
             desiredOrient = fresh ? PendingOrient : -1; PendingOrient = -1;
             attemptBuild = PendingHasBuild; PendingHasBuild = false;
@@ -236,6 +243,10 @@ namespace DinoNet
                 SetDisabled(c.Previews, false);
                 Apply(sys, c);
                 active = who;
+                wantCell = PendingHasCell; wantX = PendingCellX; wantY = PendingCellY; PendingHasCell = false;
+                if (wantCell)
+                    foreach (var f in fields)
+                        if (f.Name == "_lastLocalPos") f.SetValue(sys, new Unity.Mathematics.int2(wantX, wantY));
             }
             catch (Exception e)
             {
@@ -319,6 +330,25 @@ namespace DinoNet
         }
 
         public static bool RemoteActive => active >= 0;
+
+        /// Postfix of ProcessBuildCommand (both the local player's and a friend's builds).
+        public static void BuildDone(ConstructionSystem sys, bool placed)
+        {
+            if (!placed || !Init()) return;
+            Unity.Mathematics.int2 cell = default(Unity.Mathematics.int2); bool have = false;
+            foreach (var f in fields) if (f.Name == "_currentLocalPosition") { cell = (Unity.Mathematics.int2)f.GetValue(sys); have = true; }
+            if (!have) return;
+            if (active < 0)
+            {
+                // our own build: remember the cell so it travels with the build
+                if (LastLocal.Frame == Mod.Frame) { LastLocal.HasCell = true; LastLocal.CellX = cell.x; LastLocal.CellY = cell.y; }
+            }
+            else if (wantCell && (cell.x != wantX || cell.y != wantY))
+            {
+                CellMismatches++;
+                Log.Msg("construction: " + Net.NameOf(active) + "'s building " + attemptObj + " placed at cell " + cell.x + "," + cell.y + " but they built it at " + wantX + "," + wantY);
+            }
+        }
 
         static void DestroyAll(List<Entity> l)
         {
