@@ -1,4 +1,4 @@
-// Flight recorder: keeps the last 15 seconds of everything DinoNet sees in memory
+// Flight recorder: keeps the last 6 minutes of everything DinoNet sees in memory
 // (all mod log lines including debug detail, Unity/game log lines and exceptions,
 // every network message in and out, and a state snapshot every second).
 // Nothing is written while things are fine except a small rolling file; when something
@@ -17,8 +17,8 @@ namespace DinoNet
 {
     public static class Flight
     {
-        const float Keep = 15f;
-        const int MaxEntries = 40000;
+        const float Keep = 360f;          // 6 minutes (was 15 s)
+        const int MaxEntries = 120000;    // cap for very busy sessions (~15 MB worst case)
         const int KeepFiles = 10;
 
         struct E { public double T; public int F; public string S; }
@@ -71,7 +71,7 @@ namespace DinoNet
                 string sfx = Prefs.Instance > 1 ? "_" + Prefs.Instance : "";   // one set per running copy
                 liveFile = Path.Combine(Mod.Dir, "flight_live" + sfx + ".txt");
                 flagFile = Path.Combine(Mod.Dir, "running" + sfx + ".flag");
-                // the previous run didn't quit normally -> keep its last 15 seconds
+                // the previous run didn't quit normally -> keep its newest entries (rolling file)
                 if (File.Exists(flagFile) && File.Exists(liveFile))
                 {
                     string dst = Path.Combine(dir, "flight_" + File.GetLastWriteTime(liveFile).ToString("yyyy-MM-dd_HH-mm-ss") + "_previous-run-did-not-quit-normally.txt");
@@ -247,7 +247,7 @@ namespace DinoNet
             }
             var sb = new StringBuilder(items.Length * 80 + 512);
             sb.Append("DinoNet ").Append(Mod.Version).Append(" flight recording - reason: ").Append(reason).Append("\r\n");
-            sb.Append("saved ").Append(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")).Append(", last ").Append(Keep).Append(" seconds, ").Append(items.Length).Append(" entries, last step: ").Append(Watch.Step).Append("\r\n");
+            sb.Append("saved ").Append(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")).Append(", last ").Append((Keep / 60f).ToString("0.#")).Append(" minutes, ").Append(items.Length).Append(" entries, last step: ").Append(Watch.Step).Append("\r\n");
             sb.Append("player: ").Append(Prefs.DisplayName).Append(" (game folder ").Append(Path.GetDirectoryName(Path.GetDirectoryName(Mod.Dir))).Append(")\r\n");
             sb.Append(sysInfo);
             sb.Append("time is seconds before the save; f = frame\r\n\r\n");
@@ -264,7 +264,7 @@ namespace DinoNet
             if (v == liveVersion) return;          // nothing new since the last write
             liveVersion = v;
             string tmp = liveFile + "." + System.Diagnostics.Process.GetCurrentProcess().Id + ".tmp";
-            File.WriteAllText(tmp, Render("rolling file (newest 15 s)", 6000));
+            File.WriteAllText(tmp, Render("rolling file (newest entries)", 6000));
             try { File.Delete(liveFile); } catch { }
             File.Move(tmp, liveFile);
         }

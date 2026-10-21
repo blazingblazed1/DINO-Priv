@@ -1,4 +1,4 @@
-DinoNet 0.2.5.6 - online co-op for Diplomacy is Not an Option
+DinoNet 0.2.5.7 - online co-op for Diplomacy is Not an Option
 ==============================================================
 
 One shared town: everyone controls the same faction - same buildings, army, resources and research. Each player has their own camera. The host runs
@@ -83,7 +83,7 @@ KNOWN LIMITS IN THIS VERSION
 
 IF SOMETHING GOES WRONG (crash, freeze, desync)
 -----------------------------------------------
-DinoNet keeps the last 15 seconds of what it saw in memory (orders, network messages, sync numbers, frame times, CPU and memory use,
+DinoNet keeps the last 6 minutes of what it saw in memory (orders, network messages, sync numbers, frame times, CPU and memory use,
 Steam connection quality) and saves a bug report when something goes wrong: an error, a freeze of 8+ seconds, a lost connection or
 a failed sync. Press F10 to save one by hand. If the game crashed outright, the report is saved the next time you start the game.
 Each report starts with the PC's CPU, GPU, RAM, Windows version and graphics settings.
